@@ -5,6 +5,7 @@ const userModel = require("../models/user.model");
 const jwt = require("jsonwebtoken")
 
 
+
 router.post("/register", async (req, res) => {
   const { username, password } = req.body;
   console.log(username, password);
@@ -19,6 +20,8 @@ router.post("/register", async (req, res) => {
   const token = jwt.sign({
     id:user._id,
   },process.env.JWT_SECRET)
+
+  res.cookie("token", token)
 
 
 
@@ -61,7 +64,7 @@ router.post("/login", async (req, res) => {
 });
 
 router.get("/user", async(req, res)=>{
-  const {token} = req.body;
+  const {token} = req.cookies;
 
   if(!token){
     return res.status(401).json({
