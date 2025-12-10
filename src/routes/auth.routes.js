@@ -9,7 +9,15 @@ const jwt = require("jsonwebtoken")
 router.post("/register", async (req, res) => {
   const { username, password } = req.body;
   console.log(username, password);
-
+   const exist = await userModel.findOne({
+    username
+   })
+   if(exist){
+    return res.status(409).json({
+      message : "userName is alrady in use"
+    })
+   }
+ 
   const user = await userModel.create({
     username,
     password,
@@ -21,9 +29,10 @@ router.post("/register", async (req, res) => {
     id:user._id,
   },process.env.JWT_SECRET)
 
-  res.cookie("token", token)
 
-
+res.cookie("token", token, {
+    expires : new Date(Date.now()+1000*60*60*24*7),
+  })
 
 
   res.status(201).json({
@@ -32,6 +41,7 @@ router.post("/register", async (req, res) => {
     token
   });
 });
+
 
 
 router.post("/login", async (req, res) => {
@@ -57,11 +67,24 @@ router.post("/login", async (req, res) => {
       message: "invalid password!!",
     });
   }
+   
+  const token = jwt.sign({
+      id : user._id
+  }, process.env.JWT_SECRET)
+
+  res.cookie("token", token, {
+    expires : new Date(Date.now()+1000*60*60*24*7),
+  })
+
 
   res.status(201).json({
     message: "user login successfully",
   });
 });
+
+
+
+
 
 router.get("/user", async(req, res)=>{
   const {token} = req.cookies;
